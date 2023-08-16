@@ -15,6 +15,10 @@ from .helpers import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+_HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}
+
+def _build_client_session():
+    return aiohttp.ClientSession(headers=_HEADERS)
 
 class Collector:
     """Collector for PyBoM."""
@@ -31,7 +35,7 @@ class Collector:
 
     async def get_locations_data(self):
         """Get JSON location name from BOM API endpoint."""
-        async with aiohttp.ClientSession() as session:
+        async with _build_client_session() as session:
             response = await session.get(URL_BASE + self.geohash7)
 
         if response is not None and response.status == 200:
@@ -81,7 +85,7 @@ class Collector:
     @Throttle(datetime.timedelta(minutes=5))
     async def async_update(self):
         """Refresh the data on the collector object."""
-        async with aiohttp.ClientSession() as session:
+        async with _build_client_session() as session:
             if self.locations_data is None:
                 async with session.get(URL_BASE + self.geohash7) as resp:
                     self.locations_data = await resp.json()
